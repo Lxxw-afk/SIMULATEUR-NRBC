@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0a0d14;
+  color: white;
+  text-align: center;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #1d263b;
+  color: white;
+}
+
+.card {
+  margin: 20px auto;
+  padding: 15px;
+  width: 80%;
+  background: #141c2d;
+  border-radius: 10px;
+}
+
+.green { color: #4caf50; }
+.orange { color: orange; }
+.red { color: red; }
