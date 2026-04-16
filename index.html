@@ -1,76 +1,77 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulateur NRBC V2</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Simulateur NRBC</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="overlay">
-      <h1>🚨 Simulateur NRBC</h1>
-      <p>Analyse, gravité et conduite guidée</p>
-    </div>
-  </header>
 
-  <main>
-    <section class="card">
-      <h2>Situation de crise</h2>
-      <p>Décris la situation ou charge un scénario prédéfini.</p>
+<header class="topbar">
+  <div class="overlay">
+    <h1>🚨 Simulateur NRBC</h1>
+    <p>Analyse et conduite opérationnelle</p>
+  </div>
+</header>
 
-      <textarea id="situationInput" placeholder="Décris la situation ici..."></textarea>
+<main>
 
-      <div class="actions">
-        <button onclick="analyserSituation()">Analyser la crise</button>
-        <button onclick="jouerAlarme()">🔊 Tester l’alerte</button>
-      </div>
-    </section>
+<section class="card">
+  <h2>Situation</h2>
 
-    <section class="card">
-      <h2>Scénarios prédéfinis</h2>
-      <div class="actions">
-        <button onclick="chargerScenario('colisRadiologique')">☢️ Colis suspect</button>
-        <button onclick="chargerScenario('avpRadiologique')">☢️ AVP matériel médical</button>
-        <button onclick="chargerScenario('fuiteChimique')">☣️ Fuite chimique</button>
-        <button onclick="chargerScenario('metroChimique')">☣️ Métro / convulsions</button>
-        <button onclick="chargerScenario('poudreBiologique')">🧬 Poudre suspecte</button>
-        <button onclick="chargerScenario('centreCommercial')">🧬 Centre commercial</button>
-      </div>
-    </section>
+  <textarea id="situationInput" placeholder="Décris la situation..."></textarea>
 
-    <section class="card">
-      <h2>Résultat de l’analyse</h2>
-      <div id="resultat">
-        <p>Aucune crise analysée pour le moment.</p>
-      </div>
-    </section>
+  <div class="actions">
+    <button onclick="analyserSituation()">Analyser</button>
+    <button onclick="jouerAlarme()">🔊 Test alarme</button>
+  </div>
+</section>
 
-    <section class="card">
-      <h2>Mode guidé par étapes</h2>
-      <div id="stepMeta">
-        <p>Aucune procédure lancée.</p>
-      </div>
+<section class="card">
+  <h2>Scénarios</h2>
 
-      <div id="stepBox" class="step-box">
-        <p>L’étape en cours s’affichera ici.</p>
-      </div>
+  <div class="actions">
+    <button onclick="chargerScenario('chimique')">☣️ Chimique</button>
+    <button onclick="chargerScenario('biologique')">🧬 Biologique</button>
+    <button onclick="chargerScenario('radiologique')">☢️ Radiologique</button>
+  </div>
+</section>
 
-      <div class="actions">
-        <button onclick="startGuidedMode()">Démarrer la procédure</button>
-        <button onclick="prevStep()">⬅ Étape précédente</button>
-        <button onclick="nextStep()">Étape suivante ➡</button>
-      </div>
-    </section>
-  </main>
+<section class="card">
+  <h2>Résultat</h2>
+  <div id="resultat"></div>
+</section>
 
-  <footer>
-    Créé par Julien FLAMENT | Lxxw
-  </footer>
+<section class="card">
+  <h2>Étapes</h2>
+  <div id="stepBox"></div>
 
-  <audio id="sirene" src="sounds/alarm.wav" preload="auto"></audio>
-  <audio id="voix" src="sounds/alerte-nrbc.mp3" preload="auto"></audio>
+  <div class="actions">
+    <button onclick="prevStep()">⬅</button>
+    <button onclick="nextStep()">➡</button>
+  </div>
+</section>
 
-  <script src="script.js"></script>
+<section class="card">
+  <h2>Compte-rendu</h2>
+  <div id="compteRendu"></div>
+
+  <div class="actions">
+    <button onclick="genererCompteRendu()">Générer</button>
+    <button onclick="copierCompteRendu()">Copier</button>
+  </div>
+</section>
+
+</main>
+
+<footer>
+Créé par Julien FLAMENT | Lxxw
+</footer>
+
+<audio id="sirene" src="sounds/alarm.wav"></audio>
+<audio id="voix" src="sounds/alerte-nrbc.mp3"></audio>
+
+<script src="script.js"></script>
+
 </body>
 </html>
