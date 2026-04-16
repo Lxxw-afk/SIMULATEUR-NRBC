@@ -1,24 +1,59 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>NRBC - Simulateur</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulateur NRBC</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header class="topbar">
+    <div class="overlay">
+      <h1>🚨 Simulateur NRBC</h1>
+      <p>Analyse d'une situation de crise et conduite opérationnelle</p>
+    </div>
+  </header>
 
-<h1>🚨 Centre de Crise NRBC</h1>
+  <main>
+    <section class="card">
+      <h2>Entrer une situation</h2>
+      <p>
+        Décris la situation observée. Exemple :
+        <br>
+        <em>“Plusieurs victimes au sol, forte odeur, nuage visible près d’un entrepôt.”</em>
+      </p>
 
-<div id="status" class="green">🟢 Situation normale</div>
+      <textarea id="situationInput" placeholder="Décris la situation ici..."></textarea>
 
-<button onclick="trigger()">Déclencher une alerte</button>
+      <div class="actions">
+        <button onclick="analyserSituation()">Analyser la crise</button>
+        <button onclick="chargerExemple('chimique')">Exemple chimique</button>
+        <button onclick="chargerExemple('biologique')">Exemple biologique</button>
+        <button onclick="chargerExemple('radiologique')">Exemple radiologique</button>
+      </div>
+    </section>
 
-<div id="scenario" class="card"></div>
+    <section class="card">
+      <h2>Résultat de l’analyse</h2>
+      <div id="resultat">
+        <p>Aucune crise analysée pour le moment.</p>
+      </div>
+    </section>
 
-<div id="choices"></div>
+    <section class="card">
+      <h2>Conduite à tenir</h2>
+      <div id="etapes">
+        <p>Les étapes s’afficheront ici après analyse.</p>
+      </div>
+    </section>
+  </main>
 
-<p id="feedback"></p>
+  <footer>
+    Créé par Julien FLAMENT | Lxxw
+  </footer>
 
-<script src="script.js"></script>
+  <audio id="alarmSound" src="sounds/alarm.mp3" preload="auto"></audio>
+
+  <script src="script.js"></script>
 </body>
 </html>
