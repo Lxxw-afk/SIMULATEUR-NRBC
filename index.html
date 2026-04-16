@@ -30,6 +30,7 @@
         <button onclick="chargerExemple('chimique')">Exemple chimique</button>
         <button onclick="chargerExemple('biologique')">Exemple biologique</button>
         <button onclick="chargerExemple('radiologique')">Exemple radiologique</button>
+        <button onclick="jouerAlarme()">🔊 Tester l’alerte</button>
       </div>
     </section>
 
@@ -49,10 +50,12 @@
   </main>
 
   <footer>
-    Créé par Julien FLAMENT | Lxxw.
+    Créé par Julien FLAMENT | Lxxw
   </footer>
 
-  <audio id="alarmSound" src="sounds/alarm.mp3" preload="auto"></audio>
+  <!-- AUDIO -->
+  <audio id="sirene" src="sounds/alarm.wav" preload="auto"></audio>
+  <audio id="voix" src="sounds/alerte-nrbc.mp3" preload="auto"></audio>
 
   <script src="script.js"></script>
 </body>
