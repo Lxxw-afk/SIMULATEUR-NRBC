@@ -1,13 +1,26 @@
-function chargerExemple(type) {
+let currentAnalysis = null;
+let guidedSteps = [];
+let currentStepIndex = 0;
+
+function chargerScenario(type) {
   const input = document.getElementById("situationInput");
 
-  const exemples = {
-    chimique: "Plusieurs victimes au sol, forte odeur, nuage visible près d’un entrepôt industriel. Certaines personnes présentent une détresse respiratoire rapide.",
-    biologique: "Plusieurs personnes présentent les mêmes symptômes dans un bâtiment fermé. Aucune odeur, aucune cause visible, propagation progressive.",
-    radiologique: "Un colis suspect a été ouvert. Aucun signe visible, mais un objet étrange à l’intérieur a été manipulé par un personnel."
+  const scenarios = {
+    colisRadiologique:
+      "Un colis suspect a été ouvert dans un bâtiment administratif. Un objet étrange à l’intérieur a été manipulé. Aucun signe visible immédiat, mais risque de contamination radiologique.",
+    avpRadiologique:
+      "Un véhicule transportant du matériel médical est accidenté. Le chauffeur est choqué, une autre victime est en état grave, et la route est fréquentée. Le risque radiologique n’est pas visible sur le véhicule mais figure sur le bon de transport.",
+    fuiteChimique:
+      "Plusieurs victimes au sol, forte odeur, fuite visible près d’un entrepôt industriel. Certaines personnes présentent une détresse respiratoire rapide.",
+    metroChimique:
+      "Dans une station de métro, plusieurs personnes tombent presque simultanément et convulsent. Un état de panique est visible.",
+    poudreBiologique:
+      "Une poudre blanche suspecte est découverte dans un colis reçu à domicile. Plusieurs personnes vivent sur place, aucun symptôme immédiat.",
+    centreCommercial:
+      "Plusieurs personnes présentent les mêmes symptômes dans un centre commercial. Aucune odeur, aucune cause visible, propagation progressive."
   };
 
-  input.value = exemples[type] || "";
+  input.value = scenarios[type] || "";
 }
 
 function jouerAlarme() {
@@ -25,13 +38,8 @@ function jouerAlarme() {
   sirene.volume = 0.7;
   voix.volume = 1;
 
-  sirene.play().catch(() => {
-    console.log("Lecture de la sirène bloquée par le navigateur.");
-  });
-
-  voix.play().catch(() => {
-    console.log("Lecture de la voix bloquée par le navigateur.");
-  });
+  sirene.play().catch(() => {});
+  voix.play().catch(() => {});
 }
 
 function analyserSituation() {
@@ -46,8 +54,17 @@ function analyserSituation() {
   jouerAlarme();
 
   const analyse = detecterTypeCrise(texte);
-  afficherResultat(analyse.type, analyse.confiance, analyse.raison);
-  afficherEtapes(analyse.type);
+  const gravite = evaluerGravite(texte, analyse.type);
+
+  currentAnalysis = {
+    ...analyse,
+    gravite
+  };
+
+  afficherResultat(currentAnalysis);
+  guidedSteps = buildGuidedSteps(currentAnalysis.type, currentAnalysis.gravite);
+  currentStepIndex = 0;
+  renderCurrentStep();
 }
 
 function detecterTypeCrise(texte) {
@@ -57,15 +74,15 @@ function detecterTypeCrise(texte) {
   ];
 
   const motsBiologiques = [
-    "symptôme", "symptomes", "symptôme", "symptôme", "virus", "bactérie", "bacterie",
-    "poudre blanche", "contagion", "incubation", "épidémie", "epidemie", "pandémie",
-    "pandemie", "laboratoire", "biologique"
+    "symptôme", "symptomes", "virus", "bactérie", "bacterie",
+    "poudre blanche", "contagion", "incubation", "épidémie", "epidemie",
+    "pandémie", "pandemie", "laboratoire", "biologique"
   ];
 
   const motsRadiologiques = [
     "colis suspect", "radiologique", "radioactif", "irradiation",
     "contamination", "source", "rayonnement", "médical", "medical",
-    "objet suspect"
+    "objet suspect", "matériel médical", "materiel medical"
   ];
 
   const scoreChimique = compterMots(texte, motsChimiques);
@@ -76,7 +93,7 @@ function detecterTypeCrise(texte) {
     return {
       type: "chimique",
       confiance: "élevée",
-      raison: "Présence d’indices typiques : odeur, nuage, fuite, détresse respiratoire ou produit toxique."
+      raison: "Présence d’indices typiques : odeur, nuage, fuite, détresse respiratoire ou convulsions."
     };
   }
 
@@ -84,7 +101,7 @@ function detecterTypeCrise(texte) {
     return {
       type: "biologique",
       confiance: "élevée",
-      raison: "Présence d’indices typiques : symptômes progressifs, propagation, poudre suspecte ou agent infectieux."
+      raison: "Présence d’indices typiques : symptômes progressifs, poudre suspecte, laboratoire, propagation."
     };
   }
 
@@ -92,30 +109,48 @@ function detecterTypeCrise(texte) {
     return {
       type: "radiologique",
       confiance: "élevée",
-      raison: "Présence d’indices typiques : objet suspect, contamination, irradiation ou source radioactive."
+      raison: "Présence d’indices typiques : objet suspect, contamination, irradiation, matériel médical ou source radioactive."
     };
   }
 
   return {
     type: "inconnu",
     confiance: "moyenne",
-    raison: "La situation ne permet pas de trancher clairement. Une reconnaissance NRBC complète est nécessaire."
+    raison: "Les indices sont insuffisants ou mélangés. Une reconnaissance NRBC complète est nécessaire."
   };
+}
+
+function evaluerGravite(texte, type) {
+  let score = 0;
+
+  const graves = [
+    "plusieurs victimes", "victimes au sol", "convuls", "état grave", "etat grave",
+    "panique", "fuite visible", "fuite active", "nuage", "forte odeur",
+    "route fréquentée", "route frequentee", "centre commercial", "métro", "metro"
+  ];
+
+  for (const mot of graves) {
+    if (texte.includes(mot)) score += 1;
+  }
+
+  if (type === "chimique") score += 1;
+  if (texte.includes("plusieurs") || texte.includes("nombreux")) score += 1;
+
+  if (score <= 1) return "faible";
+  if (score <= 3) return "modérée";
+  if (score <= 5) return "sévère";
+  return "critique";
 }
 
 function compterMots(texte, liste) {
   let score = 0;
-
   for (const mot of liste) {
-    if (texte.includes(mot)) {
-      score++;
-    }
+    if (texte.includes(mot)) score++;
   }
-
   return score;
 }
 
-function afficherResultat(type, confiance, raison) {
+function afficherResultat(analyse) {
   const resultat = document.getElementById("resultat");
 
   const libelles = {
@@ -132,72 +167,184 @@ function afficherResultat(type, confiance, raison) {
     inconnu: "alert-box alert-inconnu"
   };
 
+  const gravityClass = {
+    "faible": "gravity-badge gravity-faible",
+    "modérée": "gravity-badge gravity-moderee",
+    "sévère": "gravity-badge gravity-severe",
+    "critique": "gravity-badge gravity-critique"
+  };
+
   resultat.innerHTML = `
-    <div class="${classes[type]}">${libelles[type]}</div>
-    <p><strong>Niveau de confiance :</strong> ${confiance}</p>
-    <p><strong>Pourquoi :</strong> ${raison}</p>
+    <div class="${classes[analyse.type]}">${libelles[analyse.type]}</div>
+    <p><strong>Niveau de confiance :</strong> ${analyse.confiance}</p>
+    <p><strong>Pourquoi :</strong> ${analyse.raison}</p>
+    <div class="${gravityClass[analyse.gravite]}">Gravité : ${analyse.gravite}</div>
   `;
 }
 
-function afficherEtapes(type) {
-  const etapes = document.getElementById("etapes");
+function buildGuidedSteps(type, gravite) {
+  const base = [
+    {
+      title: "Reconnaissance initiale",
+      content: "Confirmer les indices, garder ses distances, observer la scène et recueillir les premières informations."
+    },
+    {
+      title: "Mise en sécurité",
+      content: "Établir un périmètre de sécurité, limiter les accès, protéger les primo-intervenants et éloigner les non-impliqués."
+    },
+    {
+      title: "Zonage",
+      content: "Mettre en place les zones adaptées à la menace : soutien, contrôlée, exclusion selon le risque et le contexte."
+    }
+  ];
 
-  const procedures = {
+  const specific = {
     chimique: [
-      "Se positionner dos au vent et en amont du nuage ou de la fuite.",
-      "Établir immédiatement un périmètre de sécurité et un zonage.",
-      "Éviter toute exposition directe et interdire l’accès aux non-spécialistes.",
-      "Utiliser les équipements adaptés, notamment l’ARI.",
-      "Réaliser les relevés avec le matériel approprié : multigaz, PID/FID, tubes colorimétriques, détecteur CWA selon le contexte.",
-      "Évacuer les victimes si possible en sécurité, après prise en compte du risque de contamination.",
-      "Regrouper les exposés et prévenir les unités sanitaires.",
-      "Déclencher la décontamination et informer les autorités compétentes."
+      {
+        title: "Positionnement",
+        content: "Se positionner dos au vent, en amont du nuage ou de la fuite, et éviter toute traversée de zone toxique."
+      },
+      {
+        title: "Détection chimique",
+        content: "Utiliser le matériel adapté : multigaz, PID/FID, tubes colorimétriques, détecteur CWA selon les indices."
+      },
+      {
+        title: "Victimes et évacuation",
+        content: "Évacuer si possible en sécurité, regrouper les exposés, prévenir les sanitaires et prévoir la décontamination."
+      }
     ],
     biologique: [
-      "Identifier un risque biologique et éviter tout contact direct avec la source suspecte.",
-      "Mettre en place un zonage clair et limiter les déplacements.",
-      "Confinement des personnes non exposées si nécessaire.",
-      "Isolement des personnes exposées ou suspectes.",
-      "Utiliser les EPI adaptés et protéger les primo-intervenants.",
-      "Procéder aux premiers prélèvements si les moyens sont disponibles et autorisés.",
-      "Regrouper les exposés et prévenir les unités sanitaires.",
-      "Suivre la chaîne de décontamination et sécuriser durablement la zone."
+      {
+        title: "Confinement / isolement",
+        content: "Confinement des non-exposés si nécessaire, isolement des personnes suspectes ou contaminées, limitation stricte des contacts."
+      },
+      {
+        title: "Prélèvements et protection",
+        content: "Utiliser les EPI adaptés, éviter tout contact, préparer les moyens de prélèvement si autorisés."
+      },
+      {
+        title: "Chaîne sanitaire",
+        content: "Regrouper les exposés, prévenir les unités sanitaires, suivre les procédures de décontamination et de traçabilité."
+      }
     ],
     radiologique: [
-      "Identifier un risque radiologique et isoler immédiatement l’objet ou la source.",
-      "Mettre en place le zonage et éloigner toute personne non indispensable.",
-      "Réaliser les relevés avec les appareils adaptés : radiamètre, contaminamètre, dosimètre.",
-      "Isoler les personnels exposés et regrouper les contaminés potentiels.",
-      "Limiter le temps d’exposition et augmenter la distance à la source.",
-      "Ne jamais manipuler directement un objet suspect sans matériel adapté.",
-      "Mettre en place confinement ou évacuation selon la situation.",
-      "Prévenir les unités sanitaires et lancer la chaîne de décontamination si nécessaire."
+      {
+        title: "Isolement de la source",
+        content: "Isoler l’objet ou la source, interdire toute manipulation directe, limiter le temps d’exposition."
+      },
+      {
+        title: "Mesures radiologiques",
+        content: "Employer les appareils adaptés : dosimètre, radiamètre, contaminamètre, compteur Geiger selon le besoin."
+      },
+      {
+        title: "Gestion des exposés",
+        content: "Isoler les personnels exposés, regrouper les contaminés potentiels, mettre en place confinement ou évacuation selon le cas."
+      }
     ],
     inconnu: [
-      "Considérer la situation comme potentiellement NRBC.",
-      "Établir un périmètre et limiter les accès.",
-      "Observer à distance et recueillir un maximum d’informations.",
-      "Protéger immédiatement les personnels engagés.",
-      "Mettre en place une reconnaissance NRBC complète.",
-      "Utiliser les détecteurs adaptés en fonction des premiers indices.",
-      "Isoler les personnes exposées et prévenir les unités sanitaires.",
-      "Attendre la confirmation du type de menace avant engagement approfondi."
+      {
+        title: "Levée de doute",
+        content: "Considérer la situation comme potentiellement NRBC et engager une reconnaissance technique complète."
+      },
+      {
+        title: "Protection maximale",
+        content: "Protéger les personnels, restreindre les accès, observer à distance et adapter les détecteurs aux premiers indices."
+      },
+      {
+        title: "Décision",
+        content: "Attendre la confirmation de la menace avant engagement approfondi ou action spécialisée."
+      }
     ]
   };
 
-  const liste = procedures[type] || procedures.inconnu;
+  const finish = [
+    {
+      title: "Coordination interservices",
+      content: "Informer les autorités et les unités sanitaires, coordonner avec les services engagés et préparer les renforts si nécessaire."
+    },
+    {
+      title: "Sortie et décontamination",
+      content: "Appliquer la procédure de sortie, décontaminer personnels et matériels, maintenir la traçabilité."
+    },
+    {
+      title: "Compte rendu",
+      content: "Rédiger un compte rendu de situation, noter les expositions potentielles et sécuriser la scène pour la suite."
+    }
+  ];
 
-  etapes.innerHTML = `
-    <ol>
-      ${liste.map((etape) => `<li>${etape}</li>`).join("")}
-    </ol>
+  const result = [...base, ...(specific[type] || specific.inconnu), ...finish];
+
+  if (gravite === "critique") {
+    result.splice(3, 0, {
+      title: "Mesures d’urgence renforcées",
+      content: "Déclencher une réponse renforcée, élargir rapidement le périmètre, prioriser les victimes critiques et anticiper une aggravation."
+    });
+  }
+
+  if (gravite === "faible") {
+    result.push({
+      title: "Stabilisation",
+      content: "Maintenir la surveillance, confirmer l’absence d’aggravation et ajuster le dispositif sans surexposition des moyens."
+    });
+  }
+
+  return result;
+}
+
+function startGuidedMode() {
+  if (!currentAnalysis) {
+    afficherErreur("Analyse d’abord une situation avant de démarrer la procédure guidée.");
+    return;
+  }
+
+  guidedSteps = buildGuidedSteps(currentAnalysis.type, currentAnalysis.gravite);
+  currentStepIndex = 0;
+  renderCurrentStep();
+}
+
+function renderCurrentStep() {
+  const stepMeta = document.getElementById("stepMeta");
+  const stepBox = document.getElementById("stepBox");
+
+  if (!guidedSteps.length) {
+    stepMeta.innerHTML = "<p>Aucune procédure lancée.</p>";
+    stepBox.innerHTML = "<p>L’étape en cours s’affichera ici.</p>";
+    return;
+  }
+
+  const step = guidedSteps[currentStepIndex];
+  stepMeta.innerHTML = `
+    <p class="step-progress">Étape ${currentStepIndex + 1} / ${guidedSteps.length}</p>
   `;
+
+  stepBox.innerHTML = `
+    <div class="step-title">${step.title}</div>
+    <p>${step.content}</p>
+  `;
+}
+
+function nextStep() {
+  if (!guidedSteps.length) return;
+  if (currentStepIndex < guidedSteps.length - 1) {
+    currentStepIndex++;
+    renderCurrentStep();
+  }
+}
+
+function prevStep() {
+  if (!guidedSteps.length) return;
+  if (currentStepIndex > 0) {
+    currentStepIndex--;
+    renderCurrentStep();
+  }
 }
 
 function afficherErreur(message) {
   const resultat = document.getElementById("resultat");
-  const etapes = document.getElementById("etapes");
+  const stepMeta = document.getElementById("stepMeta");
+  const stepBox = document.getElementById("stepBox");
 
   resultat.innerHTML = `<p>${message}</p>`;
-  etapes.innerHTML = `<p>Les étapes s’afficheront ici après analyse.</p>`;
+  stepMeta.innerHTML = `<p>Aucune procédure lancée.</p>`;
+  stepBox.innerHTML = `<p>L’étape en cours s’affichera ici.</p>`;
 }
