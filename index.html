@@ -3,34 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulateur NRBC</title>
+  <title>Simulateur NRBC V2</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="overlay">
       <h1>🚨 Simulateur NRBC</h1>
-      <p>Analyse d'une situation de crise et conduite opérationnelle</p>
+      <p>Analyse, gravité et conduite guidée</p>
     </div>
   </header>
 
   <main>
     <section class="card">
-      <h2>Entrer une situation</h2>
-      <p>
-        Décris la situation observée. Exemple :
-        <br>
-        <em>“Plusieurs victimes au sol, forte odeur, nuage visible près d’un entrepôt.”</em>
-      </p>
+      <h2>Situation de crise</h2>
+      <p>Décris la situation ou charge un scénario prédéfini.</p>
 
       <textarea id="situationInput" placeholder="Décris la situation ici..."></textarea>
 
       <div class="actions">
         <button onclick="analyserSituation()">Analyser la crise</button>
-        <button onclick="chargerExemple('chimique')">Exemple chimique</button>
-        <button onclick="chargerExemple('biologique')">Exemple biologique</button>
-        <button onclick="chargerExemple('radiologique')">Exemple radiologique</button>
         <button onclick="jouerAlarme()">🔊 Tester l’alerte</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Scénarios prédéfinis</h2>
+      <div class="actions">
+        <button onclick="chargerScenario('colisRadiologique')">☢️ Colis suspect</button>
+        <button onclick="chargerScenario('avpRadiologique')">☢️ AVP matériel médical</button>
+        <button onclick="chargerScenario('fuiteChimique')">☣️ Fuite chimique</button>
+        <button onclick="chargerScenario('metroChimique')">☣️ Métro / convulsions</button>
+        <button onclick="chargerScenario('poudreBiologique')">🧬 Poudre suspecte</button>
+        <button onclick="chargerScenario('centreCommercial')">🧬 Centre commercial</button>
       </div>
     </section>
 
@@ -42,9 +47,19 @@
     </section>
 
     <section class="card">
-      <h2>Conduite à tenir</h2>
-      <div id="etapes">
-        <p>Les étapes s’afficheront ici après analyse.</p>
+      <h2>Mode guidé par étapes</h2>
+      <div id="stepMeta">
+        <p>Aucune procédure lancée.</p>
+      </div>
+
+      <div id="stepBox" class="step-box">
+        <p>L’étape en cours s’affichera ici.</p>
+      </div>
+
+      <div class="actions">
+        <button onclick="startGuidedMode()">Démarrer la procédure</button>
+        <button onclick="prevStep()">⬅ Étape précédente</button>
+        <button onclick="nextStep()">Étape suivante ➡</button>
       </div>
     </section>
   </main>
@@ -53,7 +68,6 @@
     Créé par Julien FLAMENT | Lxxw
   </footer>
 
-  <!-- AUDIO -->
   <audio id="sirene" src="sounds/alarm.wav" preload="auto"></audio>
   <audio id="voix" src="sounds/alerte-nrbc.mp3" preload="auto"></audio>
 
