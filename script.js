@@ -65,6 +65,7 @@ function analyserSituation() {
   guidedSteps = buildGuidedSteps(currentAnalysis.type, currentAnalysis.gravite);
   currentStepIndex = 0;
   renderCurrentStep();
+  genererCompteRendu();
 }
 
 function detecterTypeCrise(texte) {
@@ -307,20 +308,29 @@ function renderCurrentStep() {
   const stepBox = document.getElementById("stepBox");
 
   if (!guidedSteps.length) {
-    stepMeta.innerHTML = "<p>Aucune procédure lancée.</p>";
-    stepBox.innerHTML = "<p>L’étape en cours s’affichera ici.</p>";
+    if (stepMeta) {
+      stepMeta.innerHTML = "<p>Aucune procédure lancée.</p>";
+    }
+    if (stepBox) {
+      stepBox.innerHTML = "<p>L’étape en cours s’affichera ici.</p>";
+    }
     return;
   }
 
   const step = guidedSteps[currentStepIndex];
-  stepMeta.innerHTML = `
-    <p class="step-progress">Étape ${currentStepIndex + 1} / ${guidedSteps.length}</p>
-  `;
 
-  stepBox.innerHTML = `
-    <div class="step-title">${step.title}</div>
-    <p>${step.content}</p>
-  `;
+  if (stepMeta) {
+    stepMeta.innerHTML = `
+      <p class="step-progress">Étape ${currentStepIndex + 1} / ${guidedSteps.length}</p>
+    `;
+  }
+
+  if (stepBox) {
+    stepBox.innerHTML = `
+      <div class="step-title">${step.title}</div>
+      <p>${step.content}</p>
+    `;
+  }
 }
 
 function nextStep() {
@@ -328,6 +338,7 @@ function nextStep() {
   if (currentStepIndex < guidedSteps.length - 1) {
     currentStepIndex++;
     renderCurrentStep();
+    genererCompteRendu();
   }
 }
 
@@ -336,6 +347,7 @@ function prevStep() {
   if (currentStepIndex > 0) {
     currentStepIndex--;
     renderCurrentStep();
+    genererCompteRendu();
   }
 }
 
@@ -343,8 +355,94 @@ function afficherErreur(message) {
   const resultat = document.getElementById("resultat");
   const stepMeta = document.getElementById("stepMeta");
   const stepBox = document.getElementById("stepBox");
+  const compteRendu = document.getElementById("compteRendu");
 
-  resultat.innerHTML = `<p>${message}</p>`;
-  stepMeta.innerHTML = `<p>Aucune procédure lancée.</p>`;
-  stepBox.innerHTML = `<p>L’étape en cours s’affichera ici.</p>`;
+  if (resultat) {
+    resultat.innerHTML = `<p>${message}</p>`;
+  }
+
+  if (stepMeta) {
+    stepMeta.innerHTML = `<p>Aucune procédure lancée.</p>`;
+  }
+
+  if (stepBox) {
+    stepBox.innerHTML = `<p>L’étape en cours s’affichera ici.</p>`;
+  }
+
+  if (compteRendu) {
+    compteRendu.innerHTML = `<p>Aucun compte-rendu généré pour le moment.</p>`;
+  }
+}
+
+function genererCompteRendu() {
+  const compteRendu = document.getElementById("compteRendu");
+
+  if (!compteRendu) return;
+
+  if (!currentAnalysis) {
+    compteRendu.innerHTML = "<p>Aucune analyse disponible pour générer un compte-rendu.</p>";
+    return;
+  }
+
+  const input = document.getElementById("situationInput");
+  const situation = input ? input.value.trim() : "";
+
+  const typeLabels = {
+    chimique: "Crise à dominante chimique",
+    biologique: "Crise à dominante biologique",
+    radiologique: "Crise à dominante radiologique",
+    inconnu: "Crise NRBC non déterminée"
+  };
+
+  const stepsText = guidedSteps.length
+    ? guidedSteps.map((step, index) => `${index + 1}. ${step.title} : ${step.content}`).join("\n")
+    : "Aucune procédure guidée générée.";
+
+  const etapeActuelle = guidedSteps.length
+    ? `${currentStepIndex + 1} / ${guidedSteps.length} - ${guidedSteps[currentStepIndex].title}`
+    : "Aucune";
+
+  const rapport = `COMPTE-RENDU NRBC
+
+Situation observée :
+${situation || "Non renseignée"}
+
+Type de crise détecté :
+${typeLabels[currentAnalysis.type]}
+
+Niveau de confiance :
+${currentAnalysis.confiance}
+
+Niveau de gravité :
+${currentAnalysis.gravite}
+
+Justification de l'analyse :
+${currentAnalysis.raison}
+
+Étape actuellement affichée :
+${etapeActuelle}
+
+Procédure recommandée :
+${stepsText}
+
+Fin du compte-rendu.`;
+
+  compteRendu.innerHTML = `<div class="report-box" id="reportText">${rapport}</div>`;
+}
+
+function copierCompteRendu() {
+  const reportText = document.getElementById("reportText");
+
+  if (!reportText) {
+    alert("Aucun compte-rendu à copier.");
+    return;
+  }
+
+  navigator.clipboard.writeText(reportText.innerText)
+    .then(() => {
+      alert("Compte-rendu copié dans le presse-papiers.");
+    })
+    .catch(() => {
+      alert("Impossible de copier le compte-rendu.");
+    });
 }
