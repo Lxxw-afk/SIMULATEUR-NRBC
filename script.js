@@ -11,12 +11,26 @@ function chargerExemple(type) {
 }
 
 function jouerAlarme() {
-  const alarm = document.getElementById("alarmSound");
-  if (!alarm) return;
+  const sirene = document.getElementById("sirene");
+  const voix = document.getElementById("voix");
 
-  alarm.currentTime = 0;
-  alarm.play().catch(() => {
-    // Certains navigateurs bloquent l'audio sans interaction préalable.
+  if (!sirene || !voix) return;
+
+  sirene.pause();
+  voix.pause();
+
+  sirene.currentTime = 0;
+  voix.currentTime = 0;
+
+  sirene.volume = 0.7;
+  voix.volume = 1;
+
+  sirene.play().catch(() => {
+    console.log("Lecture de la sirène bloquée par le navigateur.");
+  });
+
+  voix.play().catch(() => {
+    console.log("Lecture de la voix bloquée par le navigateur.");
   });
 }
 
@@ -38,25 +52,25 @@ function analyserSituation() {
 
 function detecterTypeCrise(texte) {
   const motsChimiques = [
-    "odeur", "nuage", "chlore", "fumée", "gaz", "fuite",
-    "produit chimique", "respiratoire", "convuls", "toxique", "brûlure"
+    "odeur", "nuage", "chlore", "fumée", "fumee", "gaz", "fuite",
+    "produit chimique", "respiratoire", "convuls", "toxique", "brûlure", "brulure"
   ];
 
   const motsBiologiques = [
-    "symptôme", "symptomes", "virus", "bactérie", "bacterie",
-    "poudre blanche", "contagion", "incubation", "épidémie", "pandémie",
-    "laboratoire", "biologique"
+    "symptôme", "symptomes", "symptôme", "symptôme", "virus", "bactérie", "bacterie",
+    "poudre blanche", "contagion", "incubation", "épidémie", "epidemie", "pandémie",
+    "pandemie", "laboratoire", "biologique"
   ];
 
   const motsRadiologiques = [
     "colis suspect", "radiologique", "radioactif", "irradiation",
     "contamination", "source", "rayonnement", "médical", "medical",
-    "aucun signe visible", "objet suspect"
+    "objet suspect"
   ];
 
-  let scoreChimique = compterMots(texte, motsChimiques);
-  let scoreBiologique = compterMots(texte, motsBiologiques);
-  let scoreRadiologique = compterMots(texte, motsRadiologiques);
+  const scoreChimique = compterMots(texte, motsChimiques);
+  const scoreBiologique = compterMots(texte, motsBiologiques);
+  const scoreRadiologique = compterMots(texte, motsRadiologiques);
 
   if (scoreChimique > scoreBiologique && scoreChimique > scoreRadiologique) {
     return {
@@ -78,7 +92,7 @@ function detecterTypeCrise(texte) {
     return {
       type: "radiologique",
       confiance: "élevée",
-      raison: "Présence d’indices typiques : objet suspect, contamination, irradiation, source radioactive."
+      raison: "Présence d’indices typiques : objet suspect, contamination, irradiation ou source radioactive."
     };
   }
 
@@ -91,11 +105,13 @@ function detecterTypeCrise(texte) {
 
 function compterMots(texte, liste) {
   let score = 0;
+
   for (const mot of liste) {
     if (texte.includes(mot)) {
       score++;
     }
   }
+
   return score;
 }
 
@@ -117,9 +133,7 @@ function afficherResultat(type, confiance, raison) {
   };
 
   resultat.innerHTML = `
-    <div class="${classes[type]}">
-      ${libelles[type]}
-    </div>
+    <div class="${classes[type]}">${libelles[type]}</div>
     <p><strong>Niveau de confiance :</strong> ${confiance}</p>
     <p><strong>Pourquoi :</strong> ${raison}</p>
   `;
@@ -175,7 +189,7 @@ function afficherEtapes(type) {
 
   etapes.innerHTML = `
     <ol>
-      ${liste.map(etape => `<li>${etape}</li>`).join("")}
+      ${liste.map((etape) => `<li>${etape}</li>`).join("")}
     </ol>
   `;
 }
